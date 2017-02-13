@@ -35,6 +35,7 @@ public class Main extends AbstractScript {
 	NPC men;
 	GameObject door;
 	NPC randomMan;
+	Timer t;
 	int menKilled = 0;
 	Area menArea = new Area(3104, 3504, 3091, 3512);
 	public int chosenFood = 333;
@@ -43,6 +44,7 @@ public class Main extends AbstractScript {
 	public int getState() {
 		return State;
 	}
+	
 	@Override
 	public int onLoop() {
 		if(getDialogues().inDialogue()){
@@ -67,6 +69,14 @@ public class Main extends AbstractScript {
 	}
 	@Override
 	public void onStart(){
+		if(menArea.contains(getLocalPlayer())&& !getInventory().isEmpty()){
+			
+		}
+		getSkillTracker().start(Skill.STRENGTH);
+		getSkillTracker().start(Skill.ATTACK);
+		getSkillTracker().start(Skill.DEFENCE);
+
+		t = new Timer();
 		myID.add(3078);
 		myID.add(3079);
 		myID.add(3080);
@@ -116,7 +126,7 @@ public class Main extends AbstractScript {
 			door = getGameObjects().closest(1521);
 			if(door!=null && door.hasAction("Open")){
 				door.interact("Open");
-				sleepUntil(()->door.hasAction("Close"), 15000);
+				sleep(200,400);
 			}
 			State = 3;
 		}
@@ -128,6 +138,7 @@ public class Main extends AbstractScript {
 
 	//	if(menArea.contains(getLocalPlayer())){
 			if(randomMan != null && !randomMan.isInCombat()){
+				getCamera().rotateToEntity(randomMan);
 				randomMan.interact("Attack");
 				sleepUntil(()-> !randomMan.exists(), 15000);
 				if(getSkills().getBoostedLevels(Skill.HITPOINTS) < Calculations.random(3, 7)){
@@ -158,4 +169,29 @@ public class Main extends AbstractScript {
 
 			}
 		}
+	
+
+public void onPaint(Graphics g){
+	//if(getStartScript()){
+	Color myColor = new Color(0, 0, 0, 125);
+	  Color redColor = new Color(220, 0, 80, 150);
+
+       Font helvetica = new Font("Helvetica", Font.BOLD, 13);
+		g.setColor(myColor);
+		g.setFont(helvetica);
+		g.fillRect(50, 45, 275, 150);
+		
+		g.setFont(helvetica); 
+		g.setColor(Color.WHITE);
+		g.drawString("Xak's Men Fighter",50, 60);
+		g.setColor(redColor);
+
+	    g.drawString("Attack XP Gained: "+ getSkillTracker().getGainedExperience(Skill.ATTACK)+ "per hour:" +getSkillTracker().getGainedExperiencePerHour(Skill.ATTACK), 50, 90);
+	    g.drawString("Strength XP Gained: "+ getSkillTracker().getGainedExperience(Skill.STRENGTH)+ "per hour:" +getSkillTracker().getGainedExperiencePerHour(Skill.STRENGTH), 50, 120);
+	    g.drawString("Defence XP Gained: "+ getSkillTracker().getGainedExperience(Skill.DEFENCE)+ "per hour:" +getSkillTracker().getGainedExperiencePerHour(Skill.DEFENCE), 50, 150);
+		g.drawString("Current Levels | Strength:"+getSkills().getRealLevel(Skill.STRENGTH) + " Attack:"+getSkills().getRealLevel(Skill.ATTACK)+" Defence:"+getSkills().getRealLevel(Skill.DEFENCE) ,50, 180);
+
 	}
+}
+	
+	
