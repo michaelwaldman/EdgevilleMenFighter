@@ -26,8 +26,8 @@ import org.dreambot.api.utilities.Timer;
 
 @ScriptManifest(author = "Xaklon", category = Category.MISC, description = "Fights men at Edgeville", name = "Xak's Men Fighter", version = 1.1)
 public class Main extends AbstractScript {
-	//men are 3078 3079 3080
-	//large door 1521
+	// men are 3078 3079 3080
+	// large door 1521
 
 	ArrayList<Integer> myID = new ArrayList<Integer>();
 	int currId;
@@ -41,17 +41,18 @@ public class Main extends AbstractScript {
 	public int chosenFood = 333;
 	public int State;
 	public boolean startScript = true;
+
 	public int getState() {
 		return State;
 	}
-	
+
 	@Override
 	public int onLoop() {
-		if(getDialogues().inDialogue()){
+		if (getDialogues().inDialogue()) {
 			getDialogues().clickContinue();
 		}
-		
-		if(startScript){
+
+		if (startScript) {
 			if (getState() == 1) {
 				bank();
 			} else if (getState() == 2) {
@@ -59,18 +60,21 @@ public class Main extends AbstractScript {
 			} else if (getState() == 3) {
 				fightMen();
 			} else if (getState() == 4) {
-				//bank();
+				walkToBank();
 			} else if (getState() == 1) {
 
 			}
-			}
-		
+		}
+
 		return 0;
 	}
+
 	@Override
-	public void onStart(){
-		if(menArea.contains(getLocalPlayer())&& !getInventory().isEmpty()){
-			
+	public void onStart() {
+		if (menArea.contains(getLocalPlayer()) && !getInventory().isEmpty()) {
+			State = 3;
+		} else {
+			State = 4;
 		}
 		getSkillTracker().start(Skill.STRENGTH);
 		getSkillTracker().start(Skill.ATTACK);
@@ -81,85 +85,99 @@ public class Main extends AbstractScript {
 		myID.add(3079);
 		myID.add(3080);
 
-		State = 1;
 	}
-	@Override 
-	public void onExit(){
-		Integer i = new Integer(menKilled);
 
-		String lel = new String(i.toString());
-		log(lel);
+	@Override
+	public void onExit() {
+		
 	}
-	public void bank(){
-			if(!getInventory().isFull()){
+
+	public void bank() {
+		if (!getInventory().isFull()) {
 			bankBooth = getGameObjects().closest("Bank booth");
-			if(bankBooth!=null){
+			if (bankBooth != null) {
 				bankBooth.interact("Bank");
 			}
-			sleepUntil(()-> getBank().isOpen(), 15000);
-			if(!getInventory().isEmpty()){
+			sleepUntil(() -> getBank().isOpen(), 15000);
+			if (!getInventory().isEmpty()) {
 				getBank().depositAllItems();
-				sleepUntil(()-> getInventory().isEmpty(), 15000);
+				sleepUntil(() -> getInventory().isEmpty(), 15000);
 
 			}
 			getBank().withdrawAll(chosenFood);
-			sleepUntil(()-> getInventory().isFull(), 15000);
+			sleepUntil(() -> getInventory().isFull(), 15000);
 			getBank().close();
-			sleepUntil(()-> !getBank().isOpen(), 15000);
+			sleepUntil(() -> !getBank().isOpen(), 15000);
 
 		}
-			if(getInventory().isFull()){
-				State = 2;
-			}
-			else if(!getInventory().isFull()){
-				State = 1;
-			}
+		if (getInventory().isFull()) {
+			State = 2;
+		} else if (!getInventory().isFull()) {
+			State = 1;
+		}
 	}
-	
-	public void walkToMen(){
-		
+
+	public void walkToMen() {
+
 		Tile menTile = new Tile(3101, 3509);
 		if (getWalking().getDestinationDistance() <= Calculations.random(3, 8)) {
 			getWalking().walk(menTile);
 		}
 		if (getLocalPlayer().distance(menTile) <= 1) {
 			door = getGameObjects().closest(1521);
-			if(door!=null && door.hasAction("Open")){
+			if (door != null && door.hasAction("Open")) {
 				door.interact("Open");
-				sleep(200,400);
+				sleep(200, 400);
 			}
 			State = 3;
 		}
 	}
-	
-	public void fightMen(){
-		 currId = myID.get(Calculations.random(0,myID.size()));
+
+	public void fightMen() {
+		currId = myID.get(Calculations.random(0, myID.size()));
 		randomMan = getNpcs().closest(f -> f != null && f.getID() == currId);
 
-	//	if(menArea.contains(getLocalPlayer())){
-			if(randomMan != null && !randomMan.isInCombat()){
-				getCamera().rotateToEntity(randomMan);
-				randomMan.interact("Attack");
-				sleepUntil(()-> !randomMan.exists(), 15000);
-				if(getSkills().getBoostedLevels(Skill.HITPOINTS) < Calculations.random(3, 7)){
-					getInventory().get(333).interact("Eat");
-					sleepUntil(()-> getSkills().getBoostedLevels(Skill.HITPOINTS) > 5, 15000); //sleeps until hitpoints are over five and it has eaten
-					menKilled++;
-					
-				}
-			if(getInventory().isEmpty()){
+		// if(menArea.contains(getLocalPlayer())){
+		door = getGameObjects().closest(1521);
+		if (door != null && door.hasAction("Open")) {
+			door.interact("Open");
+			sleep(200, 400);
+		}
+		if (randomMan != null && !randomMan.isInCombat() && !randomMan.isInteractedWith()) {
+			getCamera().rotateToEntity(randomMan);
+			randomMan.interact("Attack");
+			sleepUntil(() -> !randomMan.exists(), 15000);
+			menKilled++;
+
+			if (getSkills().getBoostedLevels(Skill.HITPOINTS) < 17) {
+				getInventory().get(333).interact("Eat");
+				sleepUntil(() -> getSkills().getBoostedLevels(Skill.HITPOINTS) > 5, 15000); // sleeps
+																							// until
+																							// hitpoints
+																							// are
+																							// over
+																							// five
+																							// and
+																							// it
+																							// has
+																							// eaten
+			}
+			if (getInventory().isEmpty()) {
 				State = 4;
 			}
-			}
-		
-			
 		}
-		/*else if(!menArea.contains(getLocalPlayer())){
-			State = 2;
+
+	}
+	/*
+	 * else if(!menArea.contains(getLocalPlayer())){ State = 2; } }
+	 */
+
+	public void walkToBank() {
+		door = getGameObjects().closest(1521);
+		if (door != null && door.hasAction("Open")) {
+			door.interact("Open");
+			sleep(200, 400);
 		}
-	}*/
-	
-	public void walkToBank(){
 		Tile bankTile = new Tile(3096, 3495);
 		if (getWalking().getDestinationDistance() <= Calculations.random(3, 8)) {
 			getWalking().walk(bankTile);
@@ -167,31 +185,35 @@ public class Main extends AbstractScript {
 		if (getLocalPlayer().distance(bankTile) <= 1) {
 			State = 1;
 
-			}
 		}
-	
+	}
 
-public void onPaint(Graphics g){
-	//if(getStartScript()){
-	Color myColor = new Color(0, 0, 0, 125);
-	  Color redColor = new Color(220, 0, 80, 150);
+	public void onPaint(Graphics g) {
+		// if(getStartScript()){
+		Color myColor = new Color(0, 0, 0, 125);
+		Color redColor = new Color(220, 0, 80, 150);
 
-       Font helvetica = new Font("Helvetica", Font.BOLD, 13);
+		Font helvetica = new Font("Helvetica", Font.BOLD, 11);
 		g.setColor(myColor);
 		g.setFont(helvetica);
-		g.fillRect(50, 45, 275, 150);
-		
-		g.setFont(helvetica); 
-		g.setColor(Color.WHITE);
-		g.drawString("Xak's Men Fighter",50, 60);
-		g.setColor(redColor);
+		g.fillRect(50, 45, 275, 205);
 
-	    g.drawString("Attack XP Gained: "+ getSkillTracker().getGainedExperience(Skill.ATTACK)+ "per hour:" +getSkillTracker().getGainedExperiencePerHour(Skill.ATTACK), 50, 90);
-	    g.drawString("Strength XP Gained: "+ getSkillTracker().getGainedExperience(Skill.STRENGTH)+ "per hour:" +getSkillTracker().getGainedExperiencePerHour(Skill.STRENGTH), 50, 120);
-	    g.drawString("Defence XP Gained: "+ getSkillTracker().getGainedExperience(Skill.DEFENCE)+ "per hour:" +getSkillTracker().getGainedExperiencePerHour(Skill.DEFENCE), 50, 150);
-		g.drawString("Current Levels | Strength:"+getSkills().getRealLevel(Skill.STRENGTH) + " Attack:"+getSkills().getRealLevel(Skill.ATTACK)+" Defence:"+getSkills().getRealLevel(Skill.DEFENCE) ,50, 180);
+		g.setFont(helvetica);
+		g.setColor(Color.WHITE);
+		g.drawString("Xak's Men Fighter", 50, 60);
+		g.setColor(redColor);
+		g.drawString("State is: "+ State, 50, 210);
+		g.drawString("Men slaughtered: "+ menKilled, 50, 240);
+
+		g.drawString("Attack XP Gained: " + getSkillTracker().getGainedExperience(Skill.ATTACK) + "per hour:"
+				+ getSkillTracker().getGainedExperiencePerHour(Skill.ATTACK), 50, 90);
+		g.drawString("Strength XP Gained: " + getSkillTracker().getGainedExperience(Skill.STRENGTH) + "per hour:"
+				+ getSkillTracker().getGainedExperiencePerHour(Skill.STRENGTH), 50, 120);
+		g.drawString("Defence XP Gained: " + getSkillTracker().getGainedExperience(Skill.DEFENCE) + "per hour:"
+				+ getSkillTracker().getGainedExperiencePerHour(Skill.DEFENCE), 50, 150);
+		g.drawString("Current Levels | Strength:" + getSkills().getRealLevel(Skill.STRENGTH) + " Attack:"
+				+ getSkills().getRealLevel(Skill.ATTACK) + " Defence:" + getSkills().getRealLevel(Skill.DEFENCE), 50,
+				180);
 
 	}
 }
-	
-	
