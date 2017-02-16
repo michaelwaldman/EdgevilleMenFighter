@@ -48,6 +48,7 @@ public class Main extends AbstractScript {
 	
 	public boolean startScript = true;
 	public boolean shouldGoDown = false;
+	public boolean hasFood = false;
 	public int getState() {
 		return State;
 	}
@@ -58,9 +59,11 @@ public class Main extends AbstractScript {
 			getDialogues().clickContinue();
 		}
 
-		if (startScript) {
+		//if (startScript) {
 			if (getState() == 1) {
+				if(hasFood==true){
 				bank();
+				}
 			} else if (getState() == 2) {
 				walkToMen();
 			} else if (getState() == 3) {
@@ -70,26 +73,39 @@ public class Main extends AbstractScript {
 			} else if (getState() == 5) {
 				ladderHandler();
 			}
-		}
+		//}
 
 		return 0;
 	}
 
 	@Override
 	public void onStart() {
+		if(!getInventory().isEmpty()){
+			hasFood = true;
 		int slotID = 0;
 		slotID = getInventory().getFirstFullSlot();
 		chosenFood = getInventory().getItemInSlot(slotID).getID();
+		}
 		
-		
+		if(getClient().isLoggedIn()){
 		if(getClientSettings().roofsEnabled()){
 			getKeyboard().type("::toggleroofs");
 			sleepUntil(() -> !getClientSettings().roofsEnabled(), 15000);
 
 		}
-		if (menArea.contains(getLocalPlayer()) && !getInventory().isEmpty()) {
+		}
+		else if(!getClient().isLoggedIn()){
+			log("Please disable roofs for script to function properly");
+		}
+		if (menArea.contains(getLocalPlayer()) && hasFood == false) {
 			State = 3;
-		} else {
+		} else if(!menArea.contains(getLocalPlayer()) && hasFood == false) {
+			State = 2;
+		}
+		else if(menArea.contains(getLocalPlayer()) && hasFood == true && getInventory().isFull()) {
+			State = 3;
+		}
+		else if(!menArea.contains(getLocalPlayer()) && hasFood == true && !getInventory().isFull()) {
 			State = 4;
 		}
 		getSkillTracker().start(Skill.STRENGTH);
@@ -196,8 +212,11 @@ public class Main extends AbstractScript {
 				
 			}
 		}
+		
+		if(hasFood == true){
 		if (getInventory().isEmpty()) {
 			State = 4;
+		}
 		}
 
 	}
