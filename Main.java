@@ -108,6 +108,9 @@ public class Main extends AbstractScript {
 		else if(!menArea.contains(getLocalPlayer()) && hasFood == true && !getInventory().isFull()) {
 			State = 4;
 		}
+		else if (hasFood == true && !getInventory().isEmpty()){
+			State = 4;
+		}
 		getSkillTracker().start(Skill.STRENGTH);
 		getSkillTracker().start(Skill.ATTACK);
 		getSkillTracker().start(Skill.DEFENCE);
